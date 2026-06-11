@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Diagrams: The Token Chart Investigation</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --dark:#141413; --light:#faf9f5; --mid-gray:#b0aea5; --light-gray:#e8e6dc;
+  --orange:#d97757; --blue:#6a9bcc; --green:#788c5d;
+  --dark-soft:#2d2d2a; --dark-muted:#5c5b55; --dark-faint:#8a8880;
+  --orange-soft:#faf0eb; --orange-mid:#ecc4b3;
+  --blue-soft:#eef4f9; --blue-mid:#b8d4e8;
+  --green-soft:#f0f3ec; --green-mid:#c0ccae;
+  --warm-bg:#f2f1ed; --border:#e0ded6; --border-soft:#eae8e2;
+  --red:#b54a3a; --red-soft:#f9efed;
+  --amber:#b8923e; --amber-soft:#f9f3e6; --amber-mid:#dfc88e;
+  --shadow-sm:0 1px 3px rgba(20,20,19,0.04),0 1px 2px rgba(20,20,19,0.03);
+  --shadow-md:0 4px 14px rgba(20,20,19,0.06),0 1px 4px rgba(20,20,19,0.03);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--warm-bg);font-family:'IBM Plex Sans',-apple-system,sans-serif;color:var(--dark);padding:24px 0 64px}
+.diagram-container{max-width:780px;margin:48px auto;padding:0 24px}
+.card{position:relative;background:var(--light);border:1px solid var(--border);border-radius:8px;box-shadow:var(--shadow-md);padding:40px 36px 28px}
+.card-number{position:absolute;top:18px;right:22px;font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:400;color:var(--mid-gray);letter-spacing:.5px}
+.card-title{font-size:26px;font-weight:700;line-height:1.2;color:var(--dark)}
+.card-sub{font-size:15px;font-weight:400;color:var(--dark-muted);margin-top:8px;line-height:1.45}
+.card-body{margin-top:28px}
+.attribution{margin-top:26px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--mid-gray)}
+.callout{border-radius:6px;padding:11px 16px;font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:400;line-height:1.45;text-align:center;margin-top:22px}
+.callout-blue{background:var(--blue-soft);color:var(--blue);border:1px solid var(--blue-mid)}
+.callout-green{background:var(--green-soft);color:var(--green);border:1px solid var(--green-mid)}
+.callout-orange{background:var(--orange-soft);color:var(--orange);border:1px solid var(--orange-mid)}
+.callout-neutral{background:var(--light);color:var(--dark-soft);border:1px solid var(--border)}
+.tag{display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:500;letter-spacing:.8px;text-transform:uppercase;padding:3px 10px;border-radius:100px}
+.tag-orange{background:var(--orange-soft);color:var(--orange);border:1px solid var(--orange-mid)}
+.tag-blue{background:var(--blue-soft);color:var(--blue);border:1px solid var(--blue-mid)}
+.tag-green{background:var(--green-soft);color:var(--green);border:1px solid var(--green-mid)}
+.tag-red{background:var(--red-soft);color:var(--red);border:1px solid var(--orange-mid)}
+.tag-gray{background:var(--light);color:var(--dark-faint);border:1px solid var(--border)}
+.mono{font-family:'IBM Plex Mono',monospace}
+.flex{display:flex}.col{flex-direction:column}.center{align-items:center}.justify{justify-content:center}
+.gap8{gap:8px}.gap12{gap:12px}.gap16{gap:16px}.gap24{gap:24px}
+.box{border:1px solid var(--border);border-radius:6px;background:var(--light);box-shadow:var(--shadow-sm);padding:14px 16px}
+.box-blue{border-color:var(--blue-mid);background:var(--blue-soft)}
+.box-green{border-color:var(--green-mid);background:var(--green-soft)}
+.box-orange{border-color:var(--orange-mid);background:var(--orange-soft)}
+.box-dark{border-color:var(--dark);background:var(--dark);color:var(--light)}
+.label{font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:500;letter-spacing:.6px;text-transform:uppercase;color:var(--dark-faint)}
+.desc{font-size:13px;font-weight:300;color:var(--dark-muted);line-height:1.5}
+.h6{font-size:15px;font-weight:600;color:var(--dark)}
+.vline{width:1.5px;background:var(--light-gray);margin:0 auto}
+.arrow-r{display:inline-block;width:0;height:0;border-top:5px solid transparent;border-bottom:5px solid transparent;border-left:6px solid var(--mid-gray)}
+.metric{font-size:18px;font-weight:700}
+.metric-label{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:300;color:var(--dark-faint);letter-spacing:.5px;margin-top:3px}
+table.t{width:100%;border-collapse:collapse}
+table.t td,table.t th{padding:10px 10px;border-bottom:1px solid var(--border-soft);font-size:13px;vertical-align:middle;text-align:left}
+table.t th{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:500;letter-spacing:.7px;text-transform:uppercase;color:var(--dark-faint)}
+@media (max-width:600px){
+  .card{padding:28px 20px 22px}
+  .card-title{font-size:18px}
+  .stack-m{flex-direction:column}
+}
+</style>
+</head>
+<body>
+
+<!-- ============ 01 ============ -->
+<div class="diagram-container"><div class="card">
+  <div class="card-number">01 / 15</div>
+  <div class="card-title">One Index, Two Stories</div>
+  <div class="card-sub">The Silicon Data LLM Expenditure Index falls for two unrelated reasons, and the chart cannot tell them apart.</div>
+  <div class="card-body">
+    <div class="flex justify">
+      <div class="box box-blue" style="padding:12px 26px;border-radius:100px">
+        <span class="h6" style="color:var(--blue)">LLM Expenditure Index declines</span>
+      </div>
+    </div>
+    <div class="vline" style="height:18px"></div>
+    <div style="height:1.5px;background:var(--light-gray);width:62%;margin:0 auto"></div>
+    <div class="flex gap24 stack-m" style="margin-top:0">
+      <div style="flex:1"><div class="vline" style="height:16px"></div>
+        <div class="box" style="border-color:var(--blue-mid)">
+          <div class="flex center gap8">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#6a9bcc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            <span class="h6">Price cuts</span>
+            <span class="tag tag-blue">no behavior change</span>
+          </div>
+          <div class="desc" style="margin-top:8px">DeepSeek cut 75%. Xiaomi MiMo landed near 99% below frontier rates. The index falls while every team keeps doing exactly what it did yesterday.</div>
+        </div>
+      </div>
+      <div style="flex:1"><div class="vline" style="height:16px"></div>
+        <div class="box" style="border-color:var(--orange-mid)">
+          <div class="flex center gap8">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#d97757" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+            <span class="h6">Mix shift</span>
+            <span class="tag tag-orange">behavior change</span>
+          </div>
+          <div class="desc" style="margin-top:8px">Teams move workloads from frontier models to cheaper tiers. Same prices, different choices. This is the migration everyone is debating.</div>
+        </div>
+      </div>
+    </div>
+    <div class="callout callout-blue">Only one of these is a story about demand. The chart blends both.</div>
+  </div>
+  <div class="attribution">Created by Han HELOIR YAN</div>
+</div></div>
+
+<!-- ============ 02 ============ -->
+<div class="diagram-container"><div class="card">
+  <div class="card-number">02 / 15</div>
+  <div class="card-title">Four Camps, One Assumption</div>
+  <div class="card-sub">Bear to bull, every reading of the chart treats model choice as a consumer choice.</div>
+  <div class="card-body">
+    <div class="flex gap12 stack-m">
+      <div class="box" style="flex:1;border-color:var(--orange-mid)">
+        <div class="label" style="color:var(--orange)">Steno</div>
+        <div class="desc" style="margin-top:6px">Bear trigger. If pricing rolls over, the hardware trade is over this cycle.</div>
+      </div>
+      <div class="box" style="flex:1">
+        <div class="label">Citadel</div>
+        <div class="desc" style="margin-top:6px">Substitution toward cheaper models. Frontier vs everyday bifurcation.</div>
+      </div>
+      <div class="box" style="flex:1">
+        <div class="label">Goldman</div>
+        <div class="desc" style="margin-top:6px">A price war. Easing bottlenecks trigger 75% to 99% cuts.</div>
+      </div>
+      <div class="box" style="flex:1;border-color:var(--green-mid)">
+        <div class="label" style="color:var(--green)">JPMorgan</div>
+        <div class="desc" style="margin-top:6px">The smallest speed bump on the road to higher spending.</div>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:space-between;margin-top:8px">
+      <span class="mono" style="font-size:11px;color:var(--orange)">BEAR</span>
+      <span class="mono" style="font-size:11px;color:var(--green)">BULL</span>
+    </div>
+    <div class="vline" style="height:18px"></div>
+    <div class="box box-dark" style="text-align:center;padding:14px">
+      <div class="mono" style="font-size:12px;font-weight:500;letter-spacing:.8px;color:var(--mid-gray)">THE SHARED ASSUMPTION</div>
+      <div style="font-size:15px;font-weight:600;margin-top:6px;color:var(--light)">Downgrading to a cheap model is a decision you make</div>
+    </div>
+    <div class="callout callout-orange">It is not a decision. It is a capability you earn.</div>
+  </div>
+  <div class="attribution">Created by Han HELOIR YAN</div>
+</div></div>
+
+<!-- ============ 03 ============ -->
+<div class="diagram-container"><div class="card">
+  <div class="card-number">03 / 15</div>
+  <div class="card-title">Four Bills, Four Missing Layers</div>
+  <div class="card-sub">Every public token disaster of the past month maps to an absent harness layer, not to a price.</div>
+  <div class="card-body">
+    <table class="t">
+      <tr><th>Incident (reported)</th><th>Read as</th><th>Actually missing</th></tr>
+      <tr>
+        <td><span class="h6" style="font-size:13px">$500M Claude month</span><div class="desc">no caps on employee usage</div></td>
+        <td><span class="tag tag-gray">AI too expensive</span></td>
+        <td><span class="tag tag-orange">constraint layer</span></td>
+      </tr>
+      <tr>
+        <td><span class="h6" style="font-size:13px">Amazon token leaderboard</span><div class="desc">removed after tokenmaxxing</div></td>
+        <td><span class="tag tag-gray">usage exploding</span></td>
+        <td><span class="tag tag-orange">verification denominator</span></td>
+      </tr>
+      <tr>
+        <td><span class="h6" style="font-size:13px">Uber budget gone by April</span><div class="desc">$500 to $2,000 per engineer per month</div></td>
+        <td><span class="tag tag-gray">agents too costly</span></td>
+        <td><span class="tag tag-orange">metered execution</span></td>
+      </tr>
+      <tr>
+        <td><span class="h6" style="font-size:13px">Copilot 19x bill shocks</span><div class="desc">token billing exposed consumption</div></td>
+        <td><span class="tag tag-gray">pricing problem</span></td>
+        <td><span class="tag tag-orange">lifecycle visibility</span></td>
+      </tr>
+    </table>
+    <div class="callout callout-neutral">Prices fall on their own. Harnesses do not build themselves.</div>
+  </div>
+  <div class="attribution">Created by Han HELOIR YAN</div>
+</div></div>
+
+<!-- ============ 04 ============ -->
+<div class="diagram-container"><div class="card">
+  <div class="card-number">04 / 15</div>
+  <div class="card-title">Where the Money Leaked</div>
+  <div class="card-sub">The path from an API key to a bill shock runs through four absences in a row.</div>
+  <div class="card-body">
+    <div class="flex center gap8 stack-m" style="justify-content:center">
+      <div class="box" style="flex:1;text-align:center">
+        <div class="h6" style="font-size:14px">Uncapped</div>
+        <div class="desc" style="margin-top:4px">nothing limits spend before it happens</div>
+      </div>
+      <span class="arrow-r"></span>
+      <div class="box" style="flex:1;text-align:center">
+        <div class="h6" style="font-size:14px">Unmetered</div>
+        <div class="desc" style="margin-top:4px">nothing attributes spend to a task or team</div>
+      </div>
+      <span class="arrow-r"></span>
+      <div class="box" style="flex:1;text-align:center">
+        <div class="h6" style="font-size:14px">Unverified</div>
+        <div class="desc" style="margin-top:4px">nothing separates productive tokens from waste</div>
+      </div>
+      <span class="arrow-r"></span>
+      <div class="box box-orange" style="flex:1;text-align:center">
+        <div class="h6" style="font-size:14px;color:var(--orange)">The invoice</div>
+        <div class="desc" style="margin-top:4px">the first observability layer that fires</div>
+      </div>
+    </div>
+    <div class="callout callout-orange">In every public incident, billing was the monitoring system.</div>
+  </div>
+  <div class="attribution">Created by Han HELOIR YAN</div>
+</div></div>
+
+<!-- ============ 05 ============ -->
+<div class="diagram-container"><div class="card">
+  <div class="card-number">05 / 15</div>
+  <div class="card-title">The Two-Layer Instrument</div>
+  <div class="card-sub">The harness sees only what production could deploy. Scoring sees what production never can.</div>
+  <div class="card-body">
+    <div class="flex gap16 stack-m">
+      <div class="box box-blue" style="flex:1">
+        <div class="flex center gap8">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#6a9bcc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/></svg>
+          <span class="h6" style="color:var(--blue)">What the harness sees</span>
+        </div>
+        <div class="desc" style="margin-top:10px">JSON schema validation. Domain invariants: line items sum to the total, counts match, dates parse. The visible test suite. Everything here is deployable by a real team today.</div>
+      </div>
+      <div class="box" style="flex:1;border-color:var(--border)">
+        <div class="flex center gap8">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#5c5b55" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          <span class="h6">What only scoring sees</span>
+        </div>
+        <div class="desc" style="margin-top:10px">Gold answer values. Hidden edge case tests. Never shown to any model, used only to grade the experiment after the fact.</div>
+      </div>
+    </div>
+    <div class="vline" style="height:16px"></div>
+    <div class="box box-orange" style="text-align:center">
+      <span class="h6" style="color:var(--orange);font-size:14px">Uncaught error</span>
+      <div class="desc" style="margin-top:4px">passes everything the harness can check, fails ground truth. The kind that ships.</div>
+    </div>
+    <div class="callout callout-blue">This gap is the quantity the entire token debate has no instrument for.</div>
+  </div>
+  <div class="attribution">Created by Han HELOIR YAN</div>
+</div></div>
+
+<!-- ============ 06 ============ -->
+<div class="diagram-container"><div class="card">
+  <div class="card-number">06 / 15</div>
+  <div class="card-title">What the Premium Bought</div>
+  <div class="card-sub">40 tasks, two conditions, both models with a harness: identical 100% accuracy at an 11.6x price gap.</div>
+  <div class="card-body">
+    <div class="flex gap24 stack-m" style="align-items:flex-end;justify-content:center">
+      <div style="flex:1;max-width:240px;text-align:center">
+        <div class="tag tag-green" style="margin-bottom:10px">100% correct</div>
+        <div style="height:18px;background:var(--green-soft);border:1px solid var(--green-mid);border-radius:4px 4px 0 0"></div>
+        <div style="background:var(--light);border:1px solid var(--border);border-top:none;border-radius:0 0 4px 4px;padding:10px">
+          <div class="metric" style="color:var(--green)">$0.0019</div>
+          <div class="metric-label">PER CORRECT OUTCOME</div>
+          <div class="h6" style="font-size:13px;margin-top:8px">Haiku 4.5</div>
+          <div class="desc">$1 / $5 per Mtok</div>
+        </div>
+      </div>
+      <div style="flex:1;max-width:240px;text-align:center">
+        <div class="tag tag-green" style="margin-bottom:10px">100% correct</div>
+        <div style="height:208px;background:var(--orange-soft);border:1px solid var(--orange-mid);border-radius:4px 4px 0 0"></div>
+        <div style="background:var(--light);border:1px solid var(--border);border-top:none;border-radius:0 0 4px 4px;padding:10px">
+          <div class="metric" style="color:var(--orange)">$0.0221</div>
+          <div class="metric-label">PER CORRECT OUTCOME</div>
+          <div class="h6" style="font-size:13px;margin-top:8px">Fable 5</div>
+          <div class="desc">$10 / $50 per Mtok</div>
+        </div>
+      </div>
+    </div>
+    <div class="callout callout-orange">11.6x the spend for zero additional correctness on verifiable daily work.</div>
+  </div>
+  <div class="attribution">Created by Han HELOIR YAN</div>
+</div></div>
+
+<!-- ============ 07 ============ -->
+<div class="diagram-container"><div class="card">
+  <div class="card-number">07 / 15</div>
+  <div class="card-title">Three Disagreements, Zero Model Errors</div>
+  <div class="card-sub">Every conflict between model output and our gold answers was audited. All three were our defects.</div>
+  <div class="card-body">
+    <table class="t">
+      <tr><th>Task</th><th>Model said</th><th>Our gold said</th><th>Verdict</th></tr>
+      <tr>
+        <td class="mono" style="font-size:12px">citations</td>
+        <td class="desc">title with trailing period, verbatim from source</td>
+        <td class="desc">title without the period</td>
+        <td><span class="tag tag-red">spec defect</span></td>
+      </tr>
+      <tr>
+        <td class="mono" style="font-size:12px">meeting</td>
+        <td class="desc">action item in the note's exact wording</td>
+        <td class="desc">a paraphrase of the same item</td>
+        <td><span class="tag tag-red">spec defect</span></td>
+      </tr>
+      <tr>
+        <td class="mono" style="font-size:12px">shipping</td>
+        <td class="desc">label means the package code</td>
+        <td class="desc">label means code plus description</td>
+        <td><span class="tag tag-red">spec defect</span></td>
+      </tr>
+    </table>
+    <div class="callout callout-neutral">The hard part of verification is not checking. It is saying what correct means.</div>
+  </div>
+  <div class="attribution">Created by Han HELOIR YAN</div>
+</div></div>
+
+<!-- ============ 08 ============ -->
+<div class="diagram-container"><div class="card">
+  <div class="card-number">08 / 15</div>
+  <div class="card-title">160 Runs, One Invisible Error</div>
+  <div class="card-sub">Both models failed exactly once in single shot. Only one of those failures got past the checks.</div>
+  <div class="card-body">
+    <div class="flex gap16 stack-m">
+      <div class="box box-green" style="flex:1">
+        <div class="flex center gap8">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#788c5d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9 12l2 2 4-4"/></svg>
+          <span class="h6" style="color:var(--green)">Haiku 4.5, the cheap model</span>
+        </div>
+        <div class="desc" style="margin-top:10px">One error in 40 tasks: an anagram grouping bug. The visible tests caught it instantly. One retry fixed it for a fraction of a cent.</div>
+        <div style="margin-top:10px"><span class="tag tag-green">caught and fixed</span></div>
+      </div>
+      <div class="box box-orange" style="flex:1">
+        <div class="flex center gap8">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#d97757" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <span class="h6" style="color:var(--orange)">Fable 5, the frontier model</span>
+        </div>
+        <div class="desc" style="margin-top:10px">One error in 40 tasks: a query string parser that passed all four visible tests and failed the hidden edge cases. The kind that ships.</div>
+        <div style="margin-top:10px"><span class="tag tag-orange">passed checks, still wrong</span></div>
+      </div>
+    </div>
+    <div class="flex gap12 stack-m" style="margin-top:18px">
+      <div class="box" style="flex:1;text-align:center"><div class="metric">160</div><div class="metric-label">RUNS</div></div>
+      <div class="box" style="flex:1;text-align:center"><div class="metric">2</div><div class="metric-label">ERRORS CAUGHT</div></div>
+      <div class="box" style="flex:1;text-align:center"><div class="metric" style="color:var(--orange)">1</div><div class="metric-label">UNCAUGHT, FRONTIER</div></div>
+      <div class="box" style="flex:1;text-align:center"><div class="metric">$1.82</div><div class="metric-label">TOTAL SPEND</div></div>
+    </div>
+    <div class="callout callout-orange">Frontier pricing does not buy you out of needing verification.</div>
+  </div>
+  <div class="attribution">Created by Han HELOIR YAN</div>
+</div></div>
+
+<!-- ============ 09 ============ -->
+<div class="diagram-container"><div class="card">
+  <div class="card-number">09 / 15</div>
+  <div class="card-title">The Real Axis</div>
+  <div class="card-sub">Workloads split on verification cost, not task difficulty. The premium is earned only in one column.</div>
+  <div class="card-body">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="box box-green">
+        <div class="label" style="color:var(--green)">Verifiable + routine</div>
+        <div class="desc" style="margin-top:6px">Extraction, classification, templated code. Schema and tests check it. Already migrating.</div>
+        <div style="margin-top:8px"><span class="tag tag-green">cheap tier now</span></div>
+      </div>
+      <div class="box">
+        <div class="label">Hard to verify + routine</div>
+        <div class="desc" style="margin-top:6px">Summaries, short analysis. Build golden sets and invariants, then migrate.</div>
+        <div style="margin-top:8px"><span class="tag tag-blue">build the check</span></div>
+      </div>
+      <div class="box box-blue">
+        <div class="label" style="color:var(--blue)">Verifiable + hard</div>
+        <div class="desc" style="margin-top:6px">Large refactors, complex codegen. Tests still check it. Qualify on frontier, then pin down.</div>
+        <div style="margin-top:8px"><span class="tag tag-blue">qualification lane</span></div>
+      </div>
+      <div class="box box-orange">
+        <div class="label" style="color:var(--orange)">Hard to verify + hard</div>
+        <div class="desc" style="margin-top:6px">Legal reasoning, strategy, open ended judgment. Checking needs frontier judgment itself.</div>
+        <div style="margin-top:8px"><span class="tag tag-orange">premium earned</span></div>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:space-between;margin-top:10px">
+      <span class="mono" style="font-size:11px;color:var(--dark-faint)">CHEAP TO VERIFY</span>
+      <span class="mono" style="font-size:11px;color:var(--dark-faint)">EXPENSIVE TO VERIFY</span>
+    </div>
+    <div class="callout callout-blue">Coding pays the labs today and commoditizes first, for the same reason: it is the most verifiable work there is.</div>
+  </div>
+  <div class="attribution">Created by Han HELOIR YAN</div>
+</div></div>
+
+<!-- ============ 10 ============ -->
+<div class="diagram-container"><div class="card">
+  <div class="card-number">10 / 15</div>
+  <div class="card-title">The Migration Ladder</div>
+  <div class="card-sub">The order in which workloads leave the frontier follows verification cost, rung by rung.</div>
+  <div class="card-body">
+    <div class="flex col gap8">
+      <div class="box box-green flex center gap12">
+        <span class="tag tag-green">first</span>
+        <div><span class="h6" style="font-size:14px">Code with tests, structured extraction</span><div class="desc">compiles, passes, validates: the check is free</div></div>
+      </div>
+      <div class="box flex center gap12" style="border-color:var(--green-mid)">
+        <span class="tag tag-green">next</span>
+        <div><span class="h6" style="font-size:14px">Classification, templated documents</span><div class="desc">schemas, enums, and golden sets cover it</div></div>
+      </div>
+      <div class="box flex center gap12">
+        <span class="tag tag-blue">later</span>
+        <div><span class="h6" style="font-size:14px">Open ended analysis, long summaries</span><div class="desc">partial checks only: invariants plus sampled human review</div></div>
+      </div>
+      <div class="box box-orange flex center gap12">
+        <span class="tag tag-orange">last</span>
+        <div><span class="h6" style="font-size:14px">Judgment work: legal, strategy, taste</span><div class="desc">verifying it takes the same judgment as doing it</div></div>
+      </div>
+    </div>
+    <div class="callout callout-neutral">Not because difficulty rises. Because verification cost does.</div>
+  </div>
+  <div class="attribution">Created by Han HELOIR YAN</div>
+</div></div>
+
+<!-- ============ 11 ============ -->
+<div class="diagram-container"><div class="card">
+  <div class="card-number">11 / 15</div>
+  <div class="card-title">Canary and LTS, for Models</div>
+  <div class="card-sub">The operating model engineers already trust everywhere else in the stack, applied to model selection.</div>
+  <div class="card-body">
+    <div class="flex gap16 stack-m">
+      <div class="box box-orange" style="flex:1">
+        <div class="flex center gap8">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#d97757" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          <span class="h6" style="color:var(--orange)">Frontier tier: the canary channel</span>
+        </div>
+        <div class="desc" style="margin-top:10px">Pay the premium to discover what new workloads become possible. Explore, prototype, qualify. The 10x buys a lead measured in months.</div>
+      </div>
+      <div class="box box-green" style="flex:1">
+        <div class="flex center gap8">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#788c5d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9 12l2 2 4-4"/></svg>
+          <span class="h6" style="color:var(--green)">Trailing tier: the LTS release</span>
+        </div>
+        <div class="desc" style="margin-top:10px">Tested against your checks, pinned, cost efficient. Runs the daily load. Nobody ships nightly builds to production.</div>
+      </div>
+    </div>
+    <div class="flex justify" style="margin-top:14px">
+      <div class="mono" style="font-size:12px;font-weight:500;color:var(--blue);background:var(--blue-soft);border:1px solid var(--blue-mid);border-radius:100px;padding:5px 16px">workload graduates when your verifier says the cheap tier passes</div>
+    </div>
+    <div class="callout callout-green">The premium is an R&amp;D budget, not an operating cost.</div>
+  </div>
+  <div class="attribution">Created by Han HELOIR YAN</div>
+</div></div>
+
+<!-- ============ 12 ============ -->
+<div class="diagram-container"><div class="card">
+  <div class="card-number">12 / 15</div>
+  <div class="card-title">The Qualification Cycle</div>
+  <div class="card-sub">What actually happens between a frontier release and the index bleeding back down.</div>
+  <div class="card-body">
+    <div class="flex center gap8 stack-m" style="justify-content:center;flex-wrap:wrap">
+      <div class="box box-orange" style="text-align:center;min-width:120px">
+        <div class="h6" style="font-size:13px;color:var(--orange)">Frontier release</div>
+        <div class="desc" style="margin-top:4px">new capability, unverified</div>
+      </div>
+      <span class="arrow-r"></span>
+      <div class="box" style="text-align:center;min-width:120px">
+        <div class="h6" style="font-size:13px">Explore on frontier</div>
+        <div class="desc" style="margin-top:4px">everyone pays the insurance</div>
+      </div>
+      <span class="arrow-r"></span>
+      <div class="box" style="text-align:center;min-width:120px">
+        <div class="h6" style="font-size:13px">Build the checks</div>
+        <div class="desc" style="margin-top:4px">schemas, tests, invariants</div>
+      </div>
+      <span class="arrow-r"></span>
+      <div class="box box-green" style="text-align:center;min-width:120px">
+        <div class="h6" style="font-size:13px;color:var(--green)">Pin to cheap tier</div>
+        <div class="desc" style="margin-top:4px">qualified workload migrates</div>
+      </div>
+    </div>
+    <div class="flex justify" style="margin-top:14px">
+      <div class="mono" style="font-size:12px;color:var(--dark-faint)">repeat at the next release</div>
+    </div>
+    <div class="callout callout-blue">The index spikes on releases and bleeds down as harnesses mature. That is the whole sawtooth.</div>
+  </div>
+  <div class="attribution">Created by Han HELOIR YAN</div>
+</div></div>
+
+<!-- ============ 13 ============ -->
+<div class="diagram-container"><div class="card">
+  <div class="card-number">13 / 15</div>
+  <div class="card-title">The Downgrade Decision Rule</div>
+  <div class="card-sub">Price the verification before you price the model. One question per pipeline step.</div>
+  <div class="card-body">
+    <div class="flex justify">
+      <div class="box box-blue" style="padding:12px 26px;border-radius:100px">
+        <span class="h6" style="color:var(--blue)">Can this step's output be checked mechanically?</span>
+      </div>
+    </div>
+    <div style="height:1.5px;background:var(--light-gray);width:62%;margin:18px auto 0"></div>
+    <div class="flex gap24 stack-m">
+      <div style="flex:1"><div class="vline" style="height:16px"></div>
+        <div style="text-align:center;margin-bottom:8px"><span class="tag tag-green">yes</span></div>
+        <div class="box box-green">
+          <div class="h6" style="font-size:14px;color:var(--green)">Cheap tier behind the check</div>
+          <div class="desc" style="margin-top:6px">The premium on this step is money spent on a problem you already solved.</div>
+        </div>
+      </div>
+      <div style="flex:1"><div class="vline" style="height:16px"></div>
+        <div style="text-align:center;margin-bottom:8px"><span class="tag tag-gray">no</span></div>
+        <div class="box">
+          <div class="h6" style="font-size:14px">Can you build one?</div>
+          <div class="desc" style="margin-top:6px">Schema, invariants, golden set, a human gate at the boundary. If yes: build it, then downgrade.</div>
+          <div class="desc" style="margin-top:8px">If truly no: <span style="color:var(--orange);font-weight:600">the premium is real insurance. Pay it knowingly.</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="callout callout-green">Downgrade is earned by the check, not chosen from a price sheet.</div>
+  </div>
+  <div class="attribution">Created by Han HELOIR YAN</div>
+</div></div>
+
+<!-- ============ 14 ============ -->
+<div class="diagram-container"><div class="card">
+  <div class="card-number">14 / 15</div>
+  <div class="card-title">The Sawtooth Is the Cycle</div>
+  <div class="card-sub">The prediction this framing makes: release spikes, qualification bleeds, repeat. Not boom. Not bust.</div>
+  <div class="card-body">
+    <svg viewBox="0 0 660 200" width="100%" role="img" aria-label="stylized sawtooth of the expenditure index">
+      <line x1="30" y1="170" x2="640" y2="170" stroke="#e8e6dc" stroke-width="1.5"/>
+      <polyline points="30,150 110,140 150,70 250,110 300,60 410,105 460,40 580,95" fill="none" stroke="#141413" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+      <circle cx="150" cy="70" r="4" fill="#d97757"/>
+      <circle cx="300" cy="60" r="4" fill="#d97757"/>
+      <circle cx="460" cy="40" r="4" fill="#d97757"/>
+      <text x="150" y="52" text-anchor="middle" font-family="IBM Plex Mono" font-size="11" fill="#d97757">release</text>
+      <text x="300" y="42" text-anchor="middle" font-family="IBM Plex Mono" font-size="11" fill="#d97757">release</text>
+      <text x="460" y="22" text-anchor="middle" font-family="IBM Plex Mono" font-size="11" fill="#d97757">Fable 5, Jun 9</text>
+      <text x="205" y="125" text-anchor="middle" font-family="IBM Plex Mono" font-size="11" fill="#788c5d">harness bleed</text>
+      <text x="370" y="125" text-anchor="middle" font-family="IBM Plex Mono" font-size="11" fill="#788c5d">harness bleed</text>
+      <text x="540" y="120" text-anchor="middle" font-family="IBM Plex Mono" font-size="11" fill="#788c5d">watch this</text>
+    </svg>
+    <div class="flex gap12 stack-m" style="margin-top:8px">
+      <div class="box" style="flex:1;text-align:center">
+        <div class="label" style="color:var(--orange)">spike</div>
+        <div class="desc" style="margin-top:4px">new capability arrives unverified, everyone pays the insurance to explore it</div>
+      </div>
+      <div class="box" style="flex:1;text-align:center">
+        <div class="label" style="color:var(--green)">bleed</div>
+        <div class="desc" style="margin-top:4px">workloads get qualified and pinned to cheaper tiers, the premium drains out</div>
+      </div>
+    </div>
+    <div class="callout callout-orange">Wall Street reads boom or bust. The chart is a qualification cycle.</div>
+  </div>
+  <div class="attribution">Created by Han HELOIR YAN</div>
+</div></div>
+
+<!-- ============ 15 ============ -->
+<div class="diagram-container"><div class="card">
+  <div class="card-number">15 / 15</div>
+  <div class="card-title">Who Executives Say AI Replaces</div>
+  <div class="card-sub">9,646 S&amp;P 500 earnings call transcripts, classified by how management frames AI against labor.</div>
+  <div class="card-body">
+    <div class="flex col gap12">
+      <div>
+        <div class="flex" style="justify-content:space-between"><span class="h6" style="font-size:14px;color:var(--green)">Complement to labor</span><span class="mono" style="font-size:13px;font-weight:600;color:var(--green)">43%</span></div>
+        <div style="height:14px;border-radius:100px;background:var(--green-soft);border:1px solid var(--green-mid);margin-top:6px;overflow:hidden"><div style="width:43%;height:100%;background:var(--green-mid)"></div></div>
+      </div>
+      <div>
+        <div class="flex" style="justify-content:space-between"><span class="h6" style="font-size:14px;color:var(--dark-muted)">Neutral</span><span class="mono" style="font-size:13px;font-weight:600;color:var(--dark-muted)">51%</span></div>
+        <div style="height:14px;border-radius:100px;background:var(--light);border:1px solid var(--border);margin-top:6px;overflow:hidden"><div style="width:51%;height:100%;background:var(--light-gray)"></div></div>
+      </div>
+      <div>
+        <div class="flex" style="justify-content:space-between"><span class="h6" style="font-size:14px;color:var(--orange)">Substitute for labor</span><span class="mono" style="font-size:13px;font-weight:600;color:var(--orange)">5%</span></div>
+        <div style="height:14px;border-radius:100px;background:var(--orange-soft);border:1px solid var(--orange-mid);margin-top:6px;overflow:hidden"><div style="width:5%;height:100%;background:var(--orange-mid)"></div></div>
+      </div>
+    </div>
+    <div class="desc" style="margin-top:14px">Data: LSEG StreetEvents transcripts as compiled by Citadel Securities, The Economics of Intelligence, April 2026. Chart by the author.</div>
+    <div class="callout callout-green">Complement beats substitute 8 to 1. The human in the loop is the verification layer.</div>
+  </div>
+  <div class="attribution">Created by Han HELOIR YAN</div>
+</div></div>
+
+</body>
+</html>
